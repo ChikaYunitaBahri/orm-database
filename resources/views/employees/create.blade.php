@@ -17,86 +17,81 @@
                 @endforeach
             </select>
         </div>
-        <div class="mb-4">
-            <label for="skills" class="block text-gray-700 mb-1">Skills</label>
-            <select name="skills[]" id="skills" class="w-full border rounded px-3 py-2" multiple>
-                @foreach($skills as $skill)
-                <option value="{{ $skill->id }}"
-                    {{ isset($employee) && $employee->skills->contains($skill->id) ? 'selected' : '' }}>
-                    {{ $skill->name }}
-                </option>
-                @endforeach
-            </select>
+        <div class="mt-4">
+            <label class="block text-gray-700">Skills</label>
+            <div class="relative">
+                <div class="mt-1 w-full">
+                    <div class="border border-gray-300 rounded-md p-2 cursor-pointer" onclick="toggleSkillsDropdown()">
+                        <div id="skills-display" class="text-gray-500">Select</div>
+                    </div>
+                    <div id="skills-dropdown" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg hidden">
+                        @foreach($skills as $skill)
+                        <div class="p-2 hover:bg-gray-100">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="skills[]" value="{{ $skill->id }}" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out">
+                                <span class="ml-2">{{ $skill->name }}</span>
+                            </label>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @error('skills')
+                <p class="text-sm text-red-600 mt-2">{{ $message }}</p>
+            @enderror
         </div>
 
-        <div class="flex justify-end">
+        <div class="flex justify-end mt-4">
             <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Save</button>
         </div>
     </form>
 </div>
 @endsection
 
-@push('styles')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<style>
-    .select2-container--default .select2-selection--multiple {
-        border: 1px solid #d1d5db;
-        border-radius: 0.375rem;
-        padding: 0.25rem;
-        min-height: 2.5rem;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-
-    .select2-container--default .select2-selection--multiple .select2-selection__rendered {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .select2-container--default .select2-selection--multiple .select2-selection__choice {
-        background-color: #10b981;
-        border: none;
-        color: white;
-        padding: 0.25rem 0.75rem 0.25rem 0.5rem;
-        border-radius: 0.375rem;
-        font-size: 0.875rem;
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-
-    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-        position: absolute;
-        left: 0.4rem;
-        color: white;
-        font-size: 1rem;
-        font-weight: bold;
-        cursor: pointer;
-        margin-right: 0.5rem;
-    }
-
-    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-        color: #f87171;
-    }
-</style>
-@endpush
-
-
 @push('scripts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <script>
-    $(document).ready(function () {
-        $('#skills').select2({
-            placeholder: "Pilih skill...",
-            allowClear: true,
-            width: '100%'
-        });
+    function toggleSkillsDropdown() {
+        const dropdown = document.getElementById('skills-dropdown');
+        dropdown.classList.toggle('hidden');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('skills-dropdown');
+        const display = document.getElementById('skills-display');
+
+        if (!event.target.closest('#skills-dropdown') &&
+            event.target !== display &&
+            !event.target.closest('.border.border-gray-300.rounded-md.p-2')) {
+            dropdown.classList.add('hidden');
+        }
     });
+
+    // Update selected skills display
+    const checkboxes = document.querySelectorAll('input[name="skills[]"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedSkills);
+    });
+
+    function updateSelectedSkills() {
+        const selected = [];
+        const checkboxes = document.querySelectorAll('input[name="skills[]"]:checked');
+
+        checkboxes.forEach(checkbox => {
+            selected.push(checkbox.nextElementSibling.textContent.trim());
+        });
+
+        const display = document.getElementById('skills-display');
+        if (selected.length > 0) {
+            display.textContent = selected.join(', ');
+            display.classList.remove('text-gray-500');
+        } else {
+            display.textContent = 'Select';
+            display.classList.add('text-gray-500');
+        }
+    }
+
+    // Initialize display on page load
+    document.addEventListener('DOMContentLoaded', updateSelectedSkills);
 </script>
 @endpush
-
-
